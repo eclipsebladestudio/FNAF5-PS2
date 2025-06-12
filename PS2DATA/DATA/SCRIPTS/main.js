@@ -1,5 +1,9 @@
-const font = new Font("default")
+import { SceneManager } from "./utils/scenemanagert.js";
+import { MenuManager } from "./UI/ui.js";
 
-Screen.display(() => {
-font.print(0, 0, "Teste");
-})
+function initGame() {
+    SceneManager.load(MenuManager.introUpdate);
+}
+
+
+initGame();
