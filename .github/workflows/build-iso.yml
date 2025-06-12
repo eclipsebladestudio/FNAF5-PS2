@@ -1,0 +1,27 @@
+name: Criar ISO a cada push
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  criar-iso:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Fazer checkout do código
+      uses: actions/checkout@v4
+
+    - name: Instalar genisoimage
+      run: sudo apt-get update && sudo apt-get install -y genisoimage
+
+    - name: Criar ISO da pasta 'FNAF5-PS2'
+      run: |
+        genisoimage -o FNAF5PS2.iso -R -J FNAF5-PS2
+
+    - name: Fazer upload do arquivo ISO
+      uses: actions/upload-artifact@v4
+      with:
+        name: fnaf5
+        path: FNAF5PS2.iso
