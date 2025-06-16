@@ -121,7 +121,7 @@ class Night1SceneClass {
        for (let i = 1; i <= 10; i++) {
            const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORSEQUENCE/2/${i}.png`;
            const image = new Image(imagePath);
-           image.filter = LINEAR;
+   
            elevatorSequence2.push(image);
        }
 

@@ -8,18 +8,18 @@ on:
 jobs:
   create-iso:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
-    
-    - name: install genisoimage
+
+    - name: Install genisoimage
       run: sudo apt-get update && sudo apt-get install -y genisoimage
-    
-    - name: prepare iso content
+
+    - name: Prepare ISO content
       run: |
         mkdir iso_temp
-        find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF6.elf' -exec cp {} iso_temp/ \;
+        find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5.elf' -exec cp {} iso_temp/ \;
         for dir in */; do
           if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" ]]; then
             cp -r "$dir" iso_temp/
@@ -30,14 +30,21 @@ jobs:
         fi
         rm -rf iso_temp/.git
         find iso_temp -type f | head -20
-    
-    - name: create iso
+
+    - name: Create ISO
       run: |
         genisoimage -o FNAF5PS2.iso -R -J -V "FNAF5PS2" iso_temp/
         ls -la FNAF5PS2.iso
-    
-    - name: upload iso artifact
+
+    - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: fnaf5-ps2-iso
         path: FNAF5PS2.iso
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: FNAF5PS2.iso
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
