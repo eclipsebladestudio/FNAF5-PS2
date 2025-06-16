@@ -53,6 +53,7 @@ class Night1SceneClass {
        const cursorImage = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/cursor.png");
        const lights = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/lights.png");
        const overlay = new Image("PS2DATA/DATA/ASSETS/SPRITES/GENERAL/overlay.png");
+       const condemnedImage = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/condemned.png");
 
        const tabletIntroduction = [];
        const tabletMiddle = [];
@@ -61,10 +62,6 @@ class Night1SceneClass {
        let tabletCurrentFrame = 0;
        let tabletFrameTimer = 0;
        const tabletFrameDelay = 100;
-       let tabletTimer = 0;
-       let tabletStartTime = 0;
-       const tabletStartDelay = 28000;
-       const tabletCycleDelay = 10000;
        
        const pointImage = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/TABLET/point.png");
        const middleImage = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/TABLET/middle.png");
@@ -87,7 +84,21 @@ class Night1SceneClass {
        let errorTimer = 0;
        const errorDuration = 3000;
        let eggsTimer = 0;
-       const eggsDuration = 2000;
+       let endingFinished = false;
+       let endingFinishedTime = 0;
+       let shakeStopTimer = 0;
+       let shakeStoppedTime = 0;
+       let finalNoLightPhase = false;
+
+       let showCondemnedImage = false;
+       let condemnedY = 600;
+       let condemnedTargetY = 200; 
+       let condemnedAnimationStarted = false;
+       let condemnedAnimationTimer = 0;
+       const condemnedAnimationSpeed = 100; 
+       const condemnedAnimationDuration = 5000; 
+
+       let lightsDisabled = false;
 
        lights.filter = LINEAR;
        lights.width = 1000;
@@ -103,13 +114,50 @@ class Night1SceneClass {
        let nolightDuration = Math.random() * 600 + 200;
        const nolightFrequency = 0.3;
 
-       const introAudio = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/DaughterLine1.wav");
-       let introPhase = "blackScreen";
+       const elevatorCO1 = [];
+       const elevatorCO2 = [];
+       let elevatorCOCurrentFrame1 = 0;
+       let elevatorCOCurrentFrame2 = 0;
+       let elevatorCOFrameTimer = 0;
+       const elevatorCOFrameDelay = 100;
+       let elevatorCOSequencePlaying = false;
+       let elevatorCOSequenceFinished = false;
+       let showElevatorCOButton = false;
+       let showFadeOutButton = false;
+       let fadeOutStarted = false;
+       let fadeOutAlpha = 0;
+       const fadeOutSpeed = 100;
+
+       const elevatorCOButtonX = 320;
+       const elevatorCOButtonY = 350;
+       const elevatorCOButtonWidth = 100;
+       const elevatorCOButtonHeight = 50;
+
+       const fadeOutButtonX = 320;
+       const fadeOutButtonY = 350;
+       const fadeOutButtonWidth = 100;
+       const fadeOutButtonHeight = 50;
+       
+       const handunit01c = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit01c.wav");
+       const handunit01d = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit01d.wav");
+       const handunit02a = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit02a.wav");
+       const eggsbenedict = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/eggsbenedict.wav");
+       const daughterline1 = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/STREAM/DaughterLine1.wav");
+
+       let introPhase = "daughterLine";
        let introTimer = 0;
-       const blackScreenDuration = 8000;
-       const fadeInDuration = 1500;
+       const daughterLineDuration = 0;
+       const blackScreenDuration = 3000;
+       const fadeInDuration = 1000;
        let fadeAlpha = 255;
        let audioStarted = false;
+       let firstAudioFinished = false;
+       let secondAudioStarted = false;
+       let audioStartTime = 0;
+       let audioDuration = 0;
+       let errorAudioPlaying = false;
+       let eggsAudioPlaying = false;
+       let daughterLineStarted = false;
 
        for (let i = 1; i <= 10; i++) {
            const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORSEQUENCE/1/${i}.png`;
@@ -121,8 +169,20 @@ class Night1SceneClass {
        for (let i = 1; i <= 10; i++) {
            const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORSEQUENCE/2/${i}.png`;
            const image = new Image(imagePath);
-   
            elevatorSequence2.push(image);
+       }
+
+       for (let i = 1; i <= 11; i++) {
+           const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORCO/1/${i}.png`;
+           const image = new Image(imagePath);
+           image.filter = LINEAR;
+           elevatorCO1.push(image);
+       }
+
+       for (let i = 1; i <= 11; i++) {
+           const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORCO/2/${i}.png`;
+           const image = new Image(imagePath);
+           elevatorCO2.push(image);
        }
 
        for (let i = 1; i <= 10; i++) {
@@ -152,11 +212,20 @@ class Night1SceneClass {
 
            if (introPhase !== "normal") {
                introTimer += deltaTime * 1000;
-
-               if (!audioStarted) {
-                   introAudio.play();
-                   audioStarted = true;
-                   tabletStartTime = currentTime;
+               
+               if (introPhase === "daughterLine") {
+                   if (!daughterLineStarted) {
+                       daughterline1.play();
+                       daughterLineStarted = true;
+                   }
+                   
+                   if (daughterLineStarted && !daughterline1.playing()) {
+                       introPhase = "blackScreen";
+                       introTimer = 0;
+                   }
+                   
+                   Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, 255));
+                   return;
                }
 
                if (introPhase === "blackScreen") {
@@ -170,23 +239,33 @@ class Night1SceneClass {
                }
                
                else if (introPhase === "fadeIn") {
+                   if (!audioStarted) {
+                       handunit01c.play();
+                       audioStarted = true;
+                       audioStartTime = currentTime;
+                       audioDuration = handunit01c.length;
+                   }
+                   
                    const fadeProgress = introTimer / fadeInDuration;
                    if (fadeProgress >= 1.0) {
                        introPhase = "normal";
                        fadeAlpha = 0;
                    } else {
-                       fadeAlpha = 255 - (fadeProgress * 255);
+                       fadeAlpha = Math.floor(255 * (1 - fadeProgress));
                    }
                }
            }
 
-           if (introPhase !== "blackScreen") {
-               if (tabletState === "hidden" && (currentTime - tabletStartTime) >= tabletStartDelay) {
-                   tabletState = "introduction";
-                   tabletCurrentFrame = 0;
-                   tabletFrameTimer = 0;
-               }
+           if (audioStarted && !firstAudioFinished && !handunit01c.playing()) {
+               firstAudioFinished = true;
+               tabletState = "introduction";
+               tabletCurrentFrame = 0;
+               tabletFrameTimer = 0;
+               handunit01d.play();
+               secondAudioStarted = true;
+           }
 
+           if (introPhase !== "blackScreen" && introPhase !== "daughterLine") {
                if (tabletState === "introduction" || tabletState === "middle" || tabletState === "closing") {
                    tabletFrameTimer += deltaTime * 1000;
                    if (tabletFrameTimer >= tabletFrameDelay) {
@@ -204,8 +283,11 @@ class Night1SceneClass {
                            }
                        } else if (tabletState === "closing") {
                            if (tabletCurrentFrame >= tabletClosing.length) {
+                               if (!endingFinished) {
+                                   endingFinished = true;
+                                   endingFinishedTime = currentTime;
+                               }
                                tabletState = "hidden";
-                               tabletStartTime = currentTime;
                                pointCount = 0;
                                showMiddleImage = false;
                                showErrorImage = false;
@@ -216,23 +298,29 @@ class Night1SceneClass {
                }
 
                if (tabletState === "error") {
-                   errorTimer += deltaTime * 1000;
-                   if (errorTimer >= errorDuration) {
+                   if (!errorAudioPlaying) {
+                       handunit02a.play();
+                       errorAudioPlaying = true;
+                   }
+                   
+                   if (errorAudioPlaying && !handunit02a.playing()) {
                        tabletState = "eggs";
                        showErrorImage = false;
                        showEggsImage = true;
-                       eggsTimer = 0;
+                       errorAudioPlaying = false;
+                       eggsbenedict.play();
+                       eggsAudioPlaying = true;
                    }
                }
 
                if (tabletState === "eggs") {
-                   eggsTimer += deltaTime * 1000;
-                   if (eggsTimer >= eggsDuration) {
+                   if (eggsAudioPlaying && !eggsbenedict.playing()) {
                        tabletState = "closing";
                        showEggsImage = false;
                        showMiddleImage = false;
                        tabletCurrentFrame = 0;
                        tabletFrameTimer = 0;
+                       eggsAudioPlaying = false;
                    }
                }
 
@@ -255,9 +343,57 @@ class Night1SceneClass {
                            tabletState = "error";
                            showMiddleImage = true;
                            showErrorImage = true;
-                           pointCount = 0;
                            errorTimer = 0;
                        }
+                   }
+               }
+
+               if (finalNoLightPhase && showElevatorCOButton && !elevatorCOSequencePlaying && !elevatorCOSequenceFinished && pad.justPressed(Pads.CROSS)) {
+                   const cursorScreenX = rectX - cameraX;
+                   const cursorScreenY = rectY - cameraY;
+                   
+                   if (cursorScreenX >= elevatorCOButtonX && cursorScreenX <= elevatorCOButtonX + elevatorCOButtonWidth &&
+                       cursorScreenY >= elevatorCOButtonY && cursorScreenY <= elevatorCOButtonY + elevatorCOButtonHeight) {
+                       elevatorCOSequencePlaying = true;
+                       elevatorCOCurrentFrame1 = 0;
+                       elevatorCOCurrentFrame2 = 0;
+                       elevatorCOFrameTimer = 0;
+                       showElevatorCOButton = false;
+                   }
+               }
+
+               if (elevatorCOSequenceFinished && showFadeOutButton && !fadeOutStarted && pad.justPressed(Pads.CROSS)) {
+                   const cursorScreenX = rectX - cameraX;
+                   const cursorScreenY = rectY - cameraY;
+                   
+                   if (cursorScreenX >= fadeOutButtonX && cursorScreenX <= fadeOutButtonX + fadeOutButtonWidth &&
+                       cursorScreenY >= fadeOutButtonY && cursorScreenY <= fadeOutButtonY + fadeOutButtonHeight) {
+                       fadeOutStarted = true;
+                       showFadeOutButton = false;
+                   }
+               }
+
+               if (elevatorCOSequencePlaying && !elevatorCOSequenceFinished) {
+                   elevatorCOFrameTimer += deltaTime * 1000;
+                   if (elevatorCOFrameTimer >= elevatorCOFrameDelay) {
+                       elevatorCOFrameTimer = 0;
+                       elevatorCOCurrentFrame1++;
+                       elevatorCOCurrentFrame2++;
+                       
+                       if (elevatorCOCurrentFrame1 >= elevatorCO1.length && elevatorCOCurrentFrame2 >= elevatorCO2.length) {
+                           elevatorCOSequencePlaying = false;
+                           elevatorCOSequenceFinished = true;
+                           elevatorCOCurrentFrame1 = elevatorCO1.length - 1;
+                           elevatorCOCurrentFrame2 = elevatorCO2.length - 1;
+                           showFadeOutButton = true;
+                       }
+                   }
+               }
+
+               if (fadeOutStarted) {
+                   fadeOutAlpha += fadeOutSpeed * deltaTime;
+                   if (fadeOutAlpha >= 255) {
+                       fadeOutAlpha = 255;
                    }
                }
 
@@ -309,7 +445,52 @@ class Night1SceneClass {
                    cameraY += (targetCameraY - cameraY) * cameraLerpSpeed;
                }
 
-               if (screenShake) {
+               if (endingFinished && !condemnedAnimationStarted) {
+                   if (shakeStopTimer === 0) {
+                       shakeStopTimer = currentTime;
+                   }
+                   
+                   if ((currentTime - shakeStopTimer) >= 15000) {
+                       showCondemnedImage = true;
+                       condemnedAnimationStarted = true;
+                       condemnedAnimationTimer = 0;
+                       
+                       lightsDisabled = true;
+                   }
+               }
+
+               if (showCondemnedImage && condemnedAnimationStarted) {
+                   condemnedAnimationTimer += deltaTime * 1000;
+                   
+                   if (condemnedY > condemnedTargetY) {
+                       condemnedY -= condemnedAnimationSpeed * deltaTime;
+                       
+                       if (condemnedY < condemnedTargetY) {
+                           condemnedY = condemnedTargetY;
+                       }
+                   }
+               }
+               
+               if (endingFinished && !finalNoLightPhase) {
+                   if (shakeStopTimer === 0) {
+                       shakeStopTimer = currentTime;
+                   }
+                   
+                   if ((currentTime - shakeStopTimer) >= 20000) {
+                       screenShake = false;
+                       if (shakeStoppedTime === 0) {
+                           shakeStoppedTime = currentTime;
+                       }
+                       
+                       if ((currentTime - shakeStoppedTime) >= 11000) {
+                           finalNoLightPhase = true;
+                           showNolightImages = true;
+                           showElevatorCOButton = true;
+                       }
+                   }
+               }
+
+               if (screenShake && !finalNoLightPhase) {
                    const shakeTime = Date.now();
                    if (shakeTime - lastShakeTime >= shakeSpeed) {
                        shakeOffsetX = (Math.random() - 0.5) * 2 * shakeIntensity;
@@ -321,26 +502,30 @@ class Night1SceneClass {
                    shakeOffsetY = 0;
                }
 
-               lightsY -= lightsSpeed * deltaTime;
-               
-               if (lightsY <= -200) {
-                   lightsY = 526; 
+               if (!lightsDisabled) {
+                   lightsY -= lightsSpeed * deltaTime;
+                   
+                   if (lightsY <= -200) {
+                       lightsY = 526; 
+                   }
                }
 
-               nolightTimer += deltaTime * 1000;
-               
-               if (!showNolightImages && nolightTimer >= nolightInterval && Math.random() < nolightFrequency) {
-                   showNolightImages = true;
-                   nolightDisplayTime = 0;
-                   nolightDuration = Math.random() * 600 + 200;
-               }
-               
-               if (showNolightImages) {
-                   nolightDisplayTime += deltaTime * 1000;
-                   if (nolightDisplayTime >= nolightDuration) {
-                       showNolightImages = false;
-                       nolightTimer = 0;
-                       nolightInterval = Math.random() * 2500 + 1500;
+               if (!finalNoLightPhase) {
+                   nolightTimer += deltaTime * 1000;
+                   
+                   if (!showNolightImages && nolightTimer >= nolightInterval && Math.random() < nolightFrequency) {
+                       showNolightImages = true;
+                       nolightDisplayTime = 0;
+                       nolightDuration = Math.random() * 600 + 200;
+                   }
+                   
+                   if (showNolightImages && !finalNoLightPhase) {
+                       nolightDisplayTime += deltaTime * 1000;
+                       if (nolightDisplayTime >= nolightDuration) {
+                           showNolightImages = false;
+                           nolightTimer = 0;
+                           nolightInterval = Math.random() * 2500 + 1500;
+                       }
                    }
                }
 
@@ -350,10 +535,16 @@ class Night1SceneClass {
                    currentFrame1 = (currentFrame1 + 1) % 10;
                    currentFrame2 = (currentFrame2 + 1) % 10;
                }
+           
+               if (!lightsDisabled) {
+                   lights.draw(0 - cameraX, lightsY - cameraY);
+               }
 
-               lights.draw(0 - cameraX, lightsY - cameraY);
+               if (showCondemnedImage) {
+                   condemnedImage.draw(350 - cameraX + shakeOffsetX, condemnedY - cameraY + shakeOffsetY);
+               }
 
-               if (!showNolightImages) {
+               if (!showNolightImages || (!finalNoLightPhase && !elevatorCOSequencePlaying && !elevatorCOSequenceFinished)) {
                    if (elevatorSequence1[currentFrame1]) {
                        elevatorSequence1[currentFrame1].draw(0 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
                    }
@@ -361,9 +552,22 @@ class Night1SceneClass {
                    if (elevatorSequence2[currentFrame2]) {
                        elevatorSequence2[currentFrame2].draw(500 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
                    }
-               } else {
+               } else if (showNolightImages && !elevatorCOSequencePlaying && !elevatorCOSequenceFinished) {
                    nolightImage1.draw(0 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
                    nolightImage2.draw(500 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
+               }
+
+               if (elevatorCOSequencePlaying || elevatorCOSequenceFinished) {
+                   const frame1Index = Math.min(elevatorCOCurrentFrame1, elevatorCO1.length - 1);
+                   const frame2Index = Math.min(elevatorCOCurrentFrame2, elevatorCO2.length - 1);
+                   
+                   if (elevatorCO1[frame1Index]) {
+                       elevatorCO1[frame1Index].draw(0 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
+                   }
+                   
+                   if (elevatorCO2[frame2Index]) {
+                       elevatorCO2[frame2Index].draw(500 - cameraX + shakeOffsetX, 0 - cameraY + shakeOffsetY);
+                   }
                }
 
                if (tabletState === "introduction" && tabletIntroduction[tabletCurrentFrame]) {
@@ -371,8 +575,10 @@ class Night1SceneClass {
                } else if (tabletState === "middle" && tabletMiddle[tabletCurrentFrame]) {
                    tabletMiddle[tabletCurrentFrame].draw(tabletX + shakeOffsetX, tabletY + shakeOffsetY);
                    
-                   for (let i = 0; i < pointCount; i++) {
-                       pointImage.draw((tabletX + 80 + i * 15) + shakeOffsetX, (tabletY + 76) + shakeOffsetY);
+                   if (!showEggsImage) {
+                       for (let i = 0; i < pointCount; i++) {
+                           pointImage.draw((tabletX + 80 + i * 15) + shakeOffsetX, (tabletY + 76) + shakeOffsetY);
+                       }
                    }
                } else if (tabletState === "closing" && tabletClosing[tabletCurrentFrame]) {
                    tabletClosing[tabletCurrentFrame].draw(tabletX + shakeOffsetX, tabletY + shakeOffsetY);
@@ -390,15 +596,26 @@ class Night1SceneClass {
                    eggsImage.draw(tabletX + 80 + shakeOffsetX, tabletY + 70 + shakeOffsetY);
                }
 
+               if (showElevatorCOButton) {
+                   Draw.rect(elevatorCOButtonX, elevatorCOButtonY, elevatorCOButtonWidth, elevatorCOButtonHeight, Color.new(255, 0, 0, 100));
+               }
+
+               if (showFadeOutButton) {
+                   Draw.rect(fadeOutButtonX, fadeOutButtonY, fadeOutButtonWidth, fadeOutButtonHeight, Color.new(0, 255, 0, 100));
+               }
+
                overlay.height = 448;
                overlay.color = Color.new(255, 255, 255, 20);
                overlay.draw(0, 0);
                
                cursorImage.draw(rectX - cameraX, rectY - cameraY);
 
-
                if (introPhase === "fadeIn" && fadeAlpha > 0) {
-                   Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, 0));
+                   Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
+               }
+
+               if (fadeOutStarted && fadeOutAlpha > 0) {
+                   Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeOutAlpha));
                }
            }
        });
