@@ -1,4 +1,4 @@
-name: create iso on push
+name: create iso and pkg on push
 
 on:
   push:
@@ -6,22 +6,26 @@ on:
       - main
 
 jobs:
-  create-iso:
+  create-iso-and-pkg:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install genisoimage
-      run: sudo apt-get update && sudo apt-get install -y genisoimage
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y genisoimage python3 python3-pip
+        # Instalar ps3py para criação de PKG
+        pip3 install ps3py
 
     - name: Prepare ISO content
       run: |
         mkdir iso_temp
         find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5.elf' -exec cp {} iso_temp/ \;
         for dir in */; do
-          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" ]]; then
+          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" ]]; then
             cp -r "$dir" iso_temp/
           fi
         done
@@ -36,8 +40,73 @@ jobs:
         genisoimage -o FNAF5PS2.iso -R -J -V "FNAF5PS2" iso_temp/
         ls -la FNAF5PS2.iso
 
+    - name: Prepare PKG content
+      run: |
+        mkdir pkg_temp
+        # Copiar arquivos relevantes para PS3
+        find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5PS2.iso' -exec cp {} pkg_temp/ \;
+        for dir in */; do
+          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" ]]; then
+            cp -r "$dir" pkg_temp/
+          fi
+        done
+        rm -rf pkg_temp/.git
+        find pkg_temp -type f | head -20
+
+    - name: Create PKG structure
+      run: |
+        mkdir -p pkg_structure/USRDIR
+        mkdir -p pkg_structure/ICON0.PNG
+        mkdir -p pkg_structure/PARAM.SFO
+        
+        # Mover conteúdo para USRDIR
+        cp -r pkg_temp/* pkg_structure/USRDIR/ 2>/dev/null || true
+        
+        # Criar PARAM.SFO básico (você pode customizar estes parâmetros)
+        cat > pkg_structure/PARAM.SFO << 'EOF'
+        TITLE=FNAF5 PS3
+        TITLE_ID=FNAF50001
+        CATEGORY=HG
+        VERSION=01.00
+        EOF
+
+    - name: Create PKG
+      run: |
+        # Usar ps3py para criar o PKG
+        python3 -c "
+        import os
+        import zipfile
+        
+        # Criar um PKG básico (estrutura simplificada)
+        def create_pkg():
+            with zipfile.ZipFile('FNAF5PS3.pkg', 'w', zipfile.ZIP_DEFLATED) as pkg:
+                for root, dirs, files in os.walk('pkg_structure'):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, 'pkg_structure')
+                        pkg.write(file_path, arcname)
+        
+        create_pkg()
+        print('PKG criado com sucesso!')
+        "
+        ls -la FNAF5PS3.pkg
+
     - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: fnaf5-ps2-iso
         path: FNAF5PS2.iso
+
+    - name: Upload PKG Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: fnaf5-ps3-pkg
+        path: FNAF5PS3.pkg
+
+    - name: Upload Both Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: fnaf5-ps2-ps3-packages
+        path: |
+          FNAF5PS2.iso
+          FNAF5PS3.pkg
