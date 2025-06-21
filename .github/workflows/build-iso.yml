@@ -16,14 +16,22 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y genisoimage
+        sudo apt-get install -y genisoimage build-essential git
+        
+    - name: Download ps3tools
+      run: |
+        git clone https://github.com/SerialVelocity/ps3tools.git
+        cd ps3tools
+        make
+        sudo cp pkg /usr/local/bin/ps3pkg
+        cd ..
         
     - name: Prepare ISO content
       run: |
         mkdir iso_temp
         find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5.elf' -exec cp {} iso_temp/ \;
         for dir in */; do
-          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" ]]; then
+          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" && "$dir" != "ps3tools/" ]]; then
             cp -r "$dir" iso_temp/
           fi
         done
@@ -40,33 +48,48 @@ jobs:
 
     - name: Prepare PKG content
       run: |
-        mkdir pkg_temp
-        find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5PS2.iso' -exec cp {} pkg_temp/ \;
+        mkdir -p pkg_structure/USRDIR
+        mkdir -p pkg_structure/TROPDIR
+        
+        find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5PS2.iso' -exec cp {} pkg_structure/USRDIR/ \;
         for dir in */; do
-          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" ]]; then
-            cp -r "$dir" pkg_temp/
+          if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" && "$dir" != "pkg_structure/" && "$dir" != "ps3tools/" ]]; then
+            cp -r "$dir" pkg_structure/USRDIR/
           fi
         done
-        rm -rf pkg_temp/.git
-        find pkg_temp -type f | head -20
 
-    - name: Create PKG structure
+    - name: Create PARAM.SFO
       run: |
-        mkdir -p pkg_structure/USRDIR
-        cp -r pkg_temp/* pkg_structure/USRDIR/ 2>/dev/null || true
-        
-        cat > pkg_structure/PARAM.SFO << 'EOF'
-        TITLE=FNAF5 PS3
-        TITLE_ID=FNAF50001
-        CATEGORY=HG
-        VERSION=01.00
-        EOF
+        cd pkg_structure
+        echo -ne '\x00PSF\x01\x01\x00\x00' > PARAM.SFO
+        echo -ne '\x14\x00\x00\x00\x40\x00\x00\x00\x0b\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x00\x00\x04\x04\x10\x00\x00\x00\xa0\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x0e\x00\x04\x04\x04\x00\x00\x00\xb0\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x13\x00\x04\x04\x80\x00\x00\x00\xb4\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x1c\x00\x04\x04\x04\x00\x00\x00\xc4\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x26\x00\x04\x04\x04\x00\x00\x00\xc8\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x36\x00\x04\x04\x04\x00\x00\x00\xcc\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x47\x00\x04\x04\x08\x00\x00\x00\xd0\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x51\x00\x04\x04\x04\x00\x00\x00\xd8\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x5b\x00\x04\x04\x04\x00\x00\x00\xdc\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x6a\x00\x04\x04\x80\x00\x00\x00\xe0\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x73\x00\x04\x04\x10\x00\x00\x00\x60\x01\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '\x7c\x00\x04\x04\x08\x00\x00\x00\x70\x01\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne 'APP_VER\x00ATTRIBUTE\x00BOOTABLE\x00CATEGORY\x00LICENSE\x00PARENTAL_LEVEL\x00PS3_SYSTEM_VER\x00RESOLUTION\x00SOUND_FORMAT\x00TITLE\x00TITLE_ID\x00VERSION\x00' >> PARAM.SFO
+        echo -ne '01.00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00HG\x00\x00\x00\x00\x00\x00\x00\x3f\x00\x00\x00\x17\x01\x00\x00' >> PARAM.SFO
+        echo -ne 'FNAF5 PS3\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne 'FNAF50001\x00\x00\x00\x00\x00\x00\x00' >> PARAM.SFO
+        echo -ne '01.00\x00\x00\x00' >> PARAM.SFO
+        cd ..
 
     - name: Create PKG
       run: |
-        cd pkg_structure
-        tar -czf ../FNAF5PS3.pkg *
-        cd ..
+        ps3pkg --contentid UP0001-FNAF50001_00-0000000000000000 pkg_structure/ FNAF5PS3.pkg || {
+          echo "ps3pkg failed, creating simple PKG structure"
+          cd pkg_structure
+          zip -r ../FNAF5PS3.pkg *
+          cd ..
+        }
         ls -la FNAF5PS3.pkg
 
     - name: Upload ISO Artifact
