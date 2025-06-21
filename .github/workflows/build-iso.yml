@@ -8,7 +8,7 @@ on:
 jobs:
   create-iso-and-pkg:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -16,10 +16,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y genisoimage python3 python3-pip
-        # Instalar ps3py para criação de PKG
-        pip3 install ps3py
-
+        sudo apt-get install -y genisoimage
+        
     - name: Prepare ISO content
       run: |
         mkdir iso_temp
@@ -43,7 +41,6 @@ jobs:
     - name: Prepare PKG content
       run: |
         mkdir pkg_temp
-        # Copiar arquivos relevantes para PS3
         find . -maxdepth 1 -type f ! -name '*.md' ! -name '.gitignore' ! -name '*.yml' ! -name '*.yaml' ! -name 'FNAF5PS2.iso' -exec cp {} pkg_temp/ \;
         for dir in */; do
           if [[ "$dir" != ".git/" && "$dir" != ".github/" && "$dir" != "iso_temp/" && "$dir" != "pkg_temp/" ]]; then
@@ -56,13 +53,8 @@ jobs:
     - name: Create PKG structure
       run: |
         mkdir -p pkg_structure/USRDIR
-        mkdir -p pkg_structure/ICON0.PNG
-        mkdir -p pkg_structure/PARAM.SFO
-        
-        # Mover conteúdo para USRDIR
         cp -r pkg_temp/* pkg_structure/USRDIR/ 2>/dev/null || true
         
-        # Criar PARAM.SFO básico (você pode customizar estes parâmetros)
         cat > pkg_structure/PARAM.SFO << 'EOF'
         TITLE=FNAF5 PS3
         TITLE_ID=FNAF50001
@@ -72,23 +64,9 @@ jobs:
 
     - name: Create PKG
       run: |
-        # Usar ps3py para criar o PKG
-        python3 -c "
-        import os
-        import zipfile
-        
-        # Criar um PKG básico (estrutura simplificada)
-        def create_pkg():
-            with zipfile.ZipFile('FNAF5PS3.pkg', 'w', zipfile.ZIP_DEFLATED) as pkg:
-                for root, dirs, files in os.walk('pkg_structure'):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, 'pkg_structure')
-                        pkg.write(file_path, arcname)
-        
-        create_pkg()
-        print('PKG criado com sucesso!')
-        "
+        cd pkg_structure
+        tar -czf ../FNAF5PS3.pkg *
+        cd ..
         ls -la FNAF5PS3.pkg
 
     - name: Upload ISO Artifact
