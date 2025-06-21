@@ -200,6 +200,7 @@ class Night1SceneClass {
         for (let i = 1; i <= 10; i++) {
             const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/ELEVATORSEQUENCE/2/${i}.png`;
             const image = new ImageManager(imagePath);
+            image.filter = LINEAR;
             elevatorSequence2.push(image);
         }
 
@@ -859,9 +860,258 @@ if (screenShake && !finalNoLightPhase) {
         });
     }
 
-    ventcrawl1() {
+ventcrawl1() {
+    const font = new Font("PS2DATA/DATA/ASSETS/FONTS/calibrilight.ttf");
+    const ventcontrols = new Image("PS2DATA/DATA/ASSETS/SPRITES/GENERAL/ventcrawlcontrols.png")
+    
+    let progress = 0;
+    const maxProgress = 1350;
+    const progressSpeed = 50; 
+    let lastTime = Date.now();
+    
+    let fadeAlpha = 255;
+    let fadeSpeed = 2;
+    let gameState = "fadein";
+    
 
+    const cameraSpeed = 300;
+    const maxWidth = 894;
+    const maxHeight = 526;
+    const screenWidth = 640;
+    const screenHeight = 448;
+    
+    const frameWidth = 447;
+
+       
+    let cameraX = (maxWidth - screenWidth) / 2;
+    let cameraY = (maxHeight - screenHeight) / 2;
+    const pad = Pads.get(0);
+
+ 
+    const ventSequence1 = [];
+    let currentFrame1 = 0;
+    let frameTimer1 = 0;
+    let isAnimating1 = false;
+    const frameDelay = 50;
+    const runningFrameDelay = 30;
+
+    for (let i = 1; i <= 16; i++) {
+        const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/VENTCRAWL/SEQUENCE/1/${i}.png`;
+        const image = new Image(imagePath);
+        image.width = frameWidth;
+        ventSequence1.push(image);
     }
+
+    const ventSequence2 = [];
+    let currentFrame2 = 0;
+    let frameTimer2 = 0;
+    let isAnimating2 = false;
+
+    for (let i = 1; i <= 16; i++) {
+        const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/VENTCRAWL/SEQUENCE/2/${i}.png`;
+        const image = new Image(imagePath);
+        image.width = frameWidth;
+        ventSequence2.push(image);
+    }
+
+  
+    const handunit04ap1 = Sound.Sfx("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit04apt1.adp");
+    const handunit04ap2 = Sound.Sfx("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit04apt2.adp");
+    const handunit04ap3 = Sound.Sfx("PS2DATA/DATA/ASSETS/SOUND/STREAM/handunit04apt3.adp");
+
+    const metal_duct_fast = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/SFX/metal_duct_fast.wav");
+    const metal_duct_slow = Sound.Stream("PS2DATA/DATA/ASSETS/SOUND/SFX/metal_duct_slow.wav");
+    
+
+    const scaryamb = Sound.Sfx("PS2DATA/DATA/ASSETS/SOUND/STREAM/scaryamb.adp");
+    let scaryambChannel = -1;
+    let scaryambStarted = false;
+    
+    let isFastPlaying = false;
+    let isSlowPlaying = false;
+    let audioState = "ap1";
+    let currentAudioChannel = -1;
+    let audioStarted = false;
+
+    function manageAudio() {
+        if (!audioStarted && gameState === "playing") {
+            currentAudioChannel = handunit04ap1.play();
+            audioStarted = true;
+            audioState = "ap1";
+        }
+
+        if (audioStarted) {
+            if (audioState === "ap1" && !handunit04ap1.playing(currentAudioChannel)) {
+                currentAudioChannel = handunit04ap2.play();
+                audioState = "ap2";
+            } else if (audioState === "ap2" && !handunit04ap2.playing(currentAudioChannel)) {
+                currentAudioChannel = handunit04ap3.play();
+                audioState = "ap3";
+            }
+        }
+    }
+
+    function manageScaryAmb() {
+        if (gameState === "playing") {
+           
+            if (!scaryambStarted) {
+                scaryambChannel = scaryamb.play();
+                scaryambStarted = true;
+            }
+           
+            else if (scaryambChannel !== -1 && !scaryamb.playing(scaryambChannel)) {
+                scaryambChannel = scaryamb.play();
+            }
+        } else if (gameState === "fadeout") {
+            
+            if (scaryambStarted && scaryambChannel !== -1) {
+               
+                scaryambStarted = false;
+                scaryambChannel = -1;
+            }
+        }
+    }
+
+    function handleDuctSounds() {
+        const isMoving = pad.pressed(Pads.UP);
+        const isRunning = pad.pressed(Pads.L1);
+        
+        if (isMoving) {
+            if (isRunning) {
+                if (!isFastPlaying) {
+                    metal_duct_slow.pause();
+                    metal_duct_fast.play();
+                    isFastPlaying = true;
+                    isSlowPlaying = false;
+                }
+            } else {
+                if (!isSlowPlaying) {
+                    metal_duct_fast.pause();
+                    metal_duct_slow.play();
+                    isSlowPlaying = true;
+                    isFastPlaying = false;
+                }
+            }
+        } else {
+            if (isFastPlaying || isSlowPlaying) {
+                metal_duct_fast.pause();
+                metal_duct_slow.pause();
+                isFastPlaying = false;
+                isSlowPlaying = false;
+            }
+        }
+    }
+
+    Screen.display(() => {
+        const currentTime = Date.now();
+        const deltaTime = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+
+        pad.update();
+
+       
+        if (gameState === "fadein") {
+            fadeAlpha -= fadeSpeed;
+            if (fadeAlpha <= 0) {
+                fadeAlpha = 0;
+                gameState = "playing";
+            }
+        } else if (gameState === "fadeout") {
+            fadeAlpha += fadeSpeed;
+            if (fadeAlpha >= 255) {
+                fadeAlpha = 255;
+            }
+        }
+
+        if (gameState === "playing") {
+            manageAudio();
+            manageScaryAmb(); 
+            handleDuctSounds();
+
+          
+            const analogRX = pad.rx / 127.0;
+            const analogRY = pad.ry / 127.0;
+            const deadzone = 0.1;
+            
+
+            
+            if (Math.abs(analogRX) > deadzone) {
+                const analogMoveX = analogRX * cameraSpeed * deltaTime;
+                cameraX += analogMoveX;
+              
+            }
+            
+            if (Math.abs(analogRY) > deadzone) {
+                const analogMoveY = analogRY * cameraSpeed * deltaTime;
+                cameraY += analogMoveY;
+            
+            }
+
+    
+            if (cameraX < 0) cameraX = 0;
+            if (cameraX > maxWidth - screenWidth) cameraX = maxWidth - screenWidth;
+            if (cameraY < 0) cameraY = 0;
+            if (cameraY > maxHeight - screenHeight) cameraY = maxHeight - screenHeight;
+
+            
+            if (pad.pressed(Pads.UP)) {
+                progress += progressSpeed * deltaTime;
+                isAnimating1 = true;
+                isAnimating2 = true;
+                
+                if (progress >= maxProgress) {
+                    progress = maxProgress;
+                    gameState = "fadeout";
+                }
+            } else {
+                isAnimating1 = false;
+                isAnimating2 = false;
+                frameTimer1 = 0;
+                frameTimer2 = 0;
+            }
+        } else if (gameState === "fadeout") {
+          
+            manageScaryAmb();
+        }
+
+
+        const currentFrameDelay = pad.pressed(Pads.L1) ? runningFrameDelay : frameDelay;
+
+        if (isAnimating1) {
+            frameTimer1 += deltaTime * 1000;
+            if (frameTimer1 >= currentFrameDelay) {
+                frameTimer1 = 0;
+                currentFrame1 = (currentFrame1 + 1) % 16;
+            }
+        }
+
+        if (isAnimating2) {
+            frameTimer2 += deltaTime * 1000;
+            if (frameTimer2 >= currentFrameDelay) {
+                frameTimer2 = 0;
+                currentFrame2 = (currentFrame2 + 1) % 16;
+            }
+        }
+
+
+        if (ventSequence1[currentFrame1]) {
+            ventSequence1[currentFrame1].draw(0 - cameraX, 0 - cameraY);
+        }
+
+        if (ventSequence2[currentFrame2]) {
+            ventSequence2[currentFrame2].draw(447 - cameraX, 0 - cameraY);
+        }
+
+    
+        ventcontrols.draw(0, 0);
+
+       
+        if (fadeAlpha > 0) {
+            Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
+        }
+
+    });
+}
 
 
 }

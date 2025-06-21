@@ -3,7 +3,7 @@ import { MenuManager } from "./UI/ui.js";
 import { Night1Scene } from "./SCENES/night1.js";
 
 function initGame() {
-    SceneManager.load(Night1Scene.elevatorScene);
+    SceneManager.load(Night1Scene.ventcrawl1);
 }
 
 
