@@ -1,7 +1,10 @@
 import {ImageManager, SceneManager} from "../utils/scenemanagert.js";
+import {DebugManager} from "../utils/debug.js";
 
 class Night1SceneClass {
     constructor() {}
+
+
 
     elevatorScene() {
         const font = new Font("PS2DATA/DATA/ASSETS/FONTS/calibrilight.ttf");
@@ -854,15 +857,23 @@ if (screenShake && !finalNoLightPhase) {
                 }
 
 
-
+                if (fadeOutStarted && fadeOutAlpha > 0) {
+                    Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeOutAlpha));
+                    
+                
+                    if (fadeOutAlpha >= 255) {
+                      SceneManager.load(Night1Scene.ventcrawl1);
+                        
+                    }
+                }
 
             }
         });
     }
 
-ventcrawl1() {
+    ventcrawl1() {
     const font = new Font("PS2DATA/DATA/ASSETS/FONTS/calibrilight.ttf");
-    const ventcontrols = new Image("PS2DATA/DATA/ASSETS/SPRITES/GENERAL/ventcrawlcontrols.png")
+    const ventcontrols = new ImageManager("PS2DATA/DATA/ASSETS/SPRITES/GENERAL/ventcrawlcontrols.png")
     
     let progress = 0;
     const maxProgress = 1350;
@@ -897,7 +908,7 @@ ventcrawl1() {
 
     for (let i = 1; i <= 16; i++) {
         const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/VENTCRAWL/SEQUENCE/1/${i}.png`;
-        const image = new Image(imagePath);
+        const image = new ImageManager(imagePath);
         image.width = frameWidth;
         ventSequence1.push(image);
     }
@@ -909,7 +920,7 @@ ventcrawl1() {
 
     for (let i = 1; i <= 16; i++) {
         const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/VENTCRAWL/SEQUENCE/2/${i}.png`;
-        const image = new Image(imagePath);
+        const image = new ImageManager(imagePath);
         image.width = frameWidth;
         ventSequence2.push(image);
     }
@@ -1071,6 +1082,12 @@ ventcrawl1() {
             }
         } else if (gameState === "fadeout") {
           
+            fadeAlpha += fadeSpeed;
+            if (fadeAlpha >= 255) {
+                fadeAlpha = 255;
+                
+                SceneManager.load(Night1Scene.mainhub);
+            }
             manageScaryAmb();
         }
 
@@ -1105,14 +1122,146 @@ ventcrawl1() {
     
         ventcontrols.draw(0, 0);
 
-       
+    
+
         if (fadeAlpha > 0) {
             Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
         }
 
+        
+
     });
 }
 
+mainhub() {
+    const font = new Font("PS2DATA/DATA/ASSETS/FONTS/calibrilight.ttf");
+    
+    let rectX = 500;
+    let rectY = 263;
+    const rectWidth = 10;
+    const rectHeight = 10;
+    const speed = 300;
+    const maxWidth = 1000;
+    const maxHeight = 526;
+    let lastTime = Date.now();
+    const rectColor = Color.new(255, 100, 100, 255);
+    
+    let targetCameraX = rectX + (rectWidth / 2) - (640 / 2);
+    let targetCameraY = rectY + (rectHeight / 2) - (448 / 2);
+    
+    if (targetCameraX < 0) targetCameraX = 0;
+    if (targetCameraX > maxWidth - 640) targetCameraX = maxWidth - 640;
+    if (targetCameraY < 0) targetCameraY = 0;
+    if (targetCameraY > maxHeight - 448) targetCameraY = maxHeight - 448;
+    
+    let cameraX = targetCameraX;
+    let cameraY = targetCameraY;
+    
+    const cameraSpeed = 5;
+    const screenWidth = 640;
+    const screenHeight = 448;
+    
+    const pad = Pads.get(0);
+
+    const elevatorSequence1 = [];
+    const elevatorSequence2 = [];
+    let currentFrame1 = 0;
+    let currentFrame2 = 0;
+    let frameTimer = 0;
+    const frameDelay = 30;
+
+    for (let i = 1; i <= 10; i++) {
+        const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/MAINHUB/mainhubsequence/1/${i}.png`;
+        const image = new Image(imagePath);
+        image.filter = LINEAR;
+        elevatorSequence1.push(image);
+    }
+
+    for (let i = 1; i <= 10; i++) {
+        const imagePath = `PS2DATA/DATA/ASSETS/SPRITES/MAINHUB/mainhubsequence/2/${i}.png`;
+        const image = new Image(imagePath);
+        elevatorSequence2.push(image);
+    }
+
+    const cursorImage = new Image("PS2DATA/DATA/ASSETS/SPRITES/ELEVATOR/cursor.png");
+    const overlay = new Image("PS2DATA/DATA/ASSETS/SPRITES/GENERAL/overlay.png");
+
+    Screen.display(() => {
+        DebugManager.update();
+        const currentTime = Date.now();
+        const deltaTime = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+
+        pad.update();
+
+        const moveDistance = speed * deltaTime;
+
+        if (pad.pressed(Pads.LEFT) && rectX > 0) {
+            rectX -= moveDistance;
+        }
+        if (pad.pressed(Pads.RIGHT) && rectX < maxWidth - rectWidth) {
+            rectX += moveDistance;
+        }
+        if (pad.pressed(Pads.UP) && rectY > 0) {
+            rectY -= moveDistance;
+        }
+        if (pad.pressed(Pads.DOWN) && rectY < maxHeight - rectHeight) {
+            rectY += moveDistance;
+        }
+
+        const analogX = pad.lx / 127.0;
+        const analogY = pad.ly / 127.0;
+        const deadzone = 0.15;
+        
+        if (Math.abs(analogX) > deadzone) {
+            const analogMoveX = analogX * moveDistance;
+            rectX += analogMoveX;
+        }
+        
+        if (Math.abs(analogY) > deadzone) {
+            const analogMoveY = analogY * moveDistance;
+            rectY += analogMoveY;
+        }
+
+        if (rectX < 0) rectX = 0;
+        if (rectX > maxWidth - rectWidth) rectX = maxWidth - rectWidth;
+        if (rectY < 0) rectY = 0;
+        if (rectY > maxHeight - rectHeight) rectY = maxHeight - rectHeight;
+
+        targetCameraX = rectX + (rectWidth / 2) - (screenWidth / 2);
+        targetCameraY = rectY + (rectHeight / 2) - (screenHeight / 2);
+
+        if (targetCameraX < 0) targetCameraX = 0;
+        if (targetCameraX > maxWidth - screenWidth) targetCameraX = maxWidth - screenWidth;
+        if (targetCameraY < 0) targetCameraY = 0;
+        if (targetCameraY > maxHeight - screenHeight) targetCameraY = maxHeight - screenHeight;
+
+        const cameraLerpSpeed = cameraSpeed * deltaTime;
+        cameraX += (targetCameraX - cameraX) * cameraLerpSpeed;
+        cameraY += (targetCameraY - cameraY) * cameraLerpSpeed;
+
+        frameTimer += deltaTime * 1000;
+        if (frameTimer >= frameDelay) {
+            frameTimer = 0;
+            currentFrame1 = (currentFrame1 + 1) % 10;
+            currentFrame2 = (currentFrame2 + 1) % 10;
+        }
+
+        if (elevatorSequence1[currentFrame1]) {
+            elevatorSequence1[currentFrame1].draw(0 - cameraX, 0 - cameraY);
+        }
+
+        if (elevatorSequence2[currentFrame2]) {
+            elevatorSequence2[currentFrame2].draw(500 - cameraX, 0 - cameraY);
+        }
+
+        overlay.height = 448;
+        overlay.color = Color.new(255, 255, 255, 20);
+        overlay.draw(0, 0);
+        DebugManager.draw();
+        cursorImage.draw(rectX - cameraX, rectY - cameraY);
+    });
+}
 
 }
 
