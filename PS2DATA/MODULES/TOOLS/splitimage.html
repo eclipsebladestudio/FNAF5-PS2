@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dividir Imagens ao Meio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <h2>Dividir imagens ao meio e baixar em zip</h2>
+  <input type="file" id="imageInput" multiple accept="image/*">
+  <button onclick="processImages()">Processar e Baixar ZIP</button>
+  <p id="status"></p>
+
+  <script>
+    async function processImages() {
+      const input = document.getElementById('imageInput');
+      const files = input.files;
+      if (!files.length) return alert('Nenhuma imagem selecionada.');
+
+      const zip = new JSZip();
+      const folder1 = zip.folder('1');
+      const folder2 = zip.folder('2');
+
+      const status = document.getElementById('status');
+      status.textContent = 'Processando imagens...';
+
+      for (let file of files) {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+
+        await new Promise((resolve) => {
+          img.onload = () => {
+            const canvas1 = document.createElement('canvas');
+            const canvas2 = document.createElement('canvas');
+
+            const halfWidth = Math.floor(img.width / 2);
+            const height = img.height;
+
+            canvas1.width = halfWidth;
+            canvas1.height = height;
+            canvas2.width = img.width - halfWidth;
+            canvas2.height = height;
+
+            const ctx1 = canvas1.getContext('2d');
+            const ctx2 = canvas2.getContext('2d');
+
+            ctx1.drawImage(img, 0, 0, halfWidth, height, 0, 0, halfWidth, height);
+            ctx2.drawImage(img, halfWidth, 0, img.width - halfWidth, height, 0, 0, img.width - halfWidth, height);
+
+            canvas1.toBlob(blob => folder1.file(file.name, blob));
+            canvas2.toBlob(blob => {
+              folder2.file(file.name, blob);
+              resolve();
+            });
+          };
+        });
+      }
+
+      zip.generateAsync({ type: 'blob' }).then(function (content) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = 'imagens_divididas.zip';
+        a.click();
+        status.textContent = 'ZIP pronto para download!';
+      });
+    }
+  </script>
+</body>
+</html>

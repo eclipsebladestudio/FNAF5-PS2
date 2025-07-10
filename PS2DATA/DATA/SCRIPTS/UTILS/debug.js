@@ -1,5 +1,5 @@
 export const DebugManager = {
-    enabled: true,
+    enabled: false,
     font: new Font("default"),
     scale: 0.8,
     lineHeight: 20,
@@ -77,35 +77,14 @@ export const DebugManager = {
         };
 
         line(`FPS: ${this.data.fps}`);
-        line(`Frame Time: ${this.data.frameTime} ms`);
         line(`Uptime: ${this.data.uptime}s`);
 
         const used = (this.data.ram.usedUser / 1048576).toFixed(1);
         const total = (this.data.ram.totalUser / 1048576).toFixed(1);
         line(`RAM Used: ${used} MB / ${total} MB`);
 
-        line(`RAM Stack: ${(this.data.ram.nativeStack / 1048576).toFixed(1)} MB`);
         line(`RAM Core: ${(this.data.ram.core / 1048576).toFixed(1)} MB`);
         line(`RAM Allocs: ${this.data.ram.allocs}`);
-        line(`VRAM Free: ${this.data.vram} KB`);
-        line(`Screen: ${this.data.resolution.width}x${this.data.resolution.height}`);
-
-        if (this.data.cpu) {
-            line(`CPU Impl.: ${this.data.cpu.implementation}`);
-            line(`Rev.: ${this.data.cpu.revision}`);
-            line(`ICache: ${this.data.cpu.ICacheSize} B`);
-            line(`DCache: ${this.data.cpu.DCacheSize} B`);
-        }
-
-        if (this.data.gpu) {
-            line(`GPU ID: ${this.data.gpu.id}`);
-            line(`GPU Rev.: ${this.data.gpu.revision}`);
-        }
-
-        if (this.data.temp) {
-            line(`CPU Temp: ${this.data.temp.cpu}°C`);
-            line(`GS Temp: ${this.data.temp.gs}°C`);
-        }
 
         if (this.data.error) {
             line(`ERROR: ${this.data.error}`);
