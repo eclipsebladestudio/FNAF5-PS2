@@ -1,4 +1,4 @@
-import {ImageManager, SceneManager} from "../UTILS/scenemanagert.js";
+import {ImageManager, SceneManager} from "../UTILS/scenemanager.js";
 import {DebugManager} from "../utils/debug.js";
 
 

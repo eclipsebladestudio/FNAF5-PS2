@@ -1,4 +1,4 @@
-import { SceneManager } from "../UTILS/scenemanagert.js";
+import { SceneManager } from "../UTILS/scenemanager.js";
 
 class MenuManagerClass {
     constructor() {}

@@ -1,4 +1,4 @@
-import { SceneManager } from "./utils/scenemanagert.js";
+import { SceneManager } from "./UTILS/scenemanager.js";
 import { MenuManager } from "./UI/ui.js";
 import { Night1Scene } from "./SCENES/night1.js";
 
