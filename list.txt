@@ -1,37 +1,7 @@
-Sister Location *
-├── Warning ✅
-├── intro ✅
-├── title screen
-├── Elevator
-├── Vent crawl
-├── load
-├── Main Hub
-├── Baby's Room
-├── to vent
-├── Ballora Gallery
-├── Breaker Room
-├── Funtime Auditorium
-├── Parts and Service
-├── win night
-├── Under Desk
-├── death
-├── game over
-├── Night 4
-├── Extras
-├── Parts and Service 2
-├── Scooping Room
-├── red fade out
-├── bathroom
-├── credits
-├── tv show
-├── Girl Voice
-├── 8-bit Baby Game
-├── Final Encounter
-├── Frame
-├── Custom menu
-├── custom please wait
-├── custom level
-├── custom death
-├── custom night win
-├── custom 8-bit cutscene
-└── Final Cutscene
+Sister Location ---
+
+Night 1
+
+Elevator Completed
+Ventcrawl1 Completed
+Mainhub = Add a fade in

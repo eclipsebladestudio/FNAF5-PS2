@@ -1,6 +1,6 @@
 export const DebugManager = {
     enabled: false,
-    font: new Font("default"),
+
     scale: 0.8,
     lineHeight: 20,
     x: 5,
