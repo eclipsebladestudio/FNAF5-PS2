@@ -1,5 +1,4 @@
 import {ImageManager,SceneManager, StreamManager, SfxManager} from "../UTILS/scenemanager.js";
-//import { DebugManager } from "../utils/debug.js";
 
 class Night2SceneClass {
     constructor() {}
@@ -348,8 +347,8 @@ class Night2SceneClass {
                 }
             }
     
-            Screen.display(() => {
-                //DebugManager.update()
+            renderScreen(() => {
+                
                 const currentTime = Date.now();
                 const deltaTime = (currentTime - lastTime) / 1000;
                 lastTime = currentTime;
@@ -900,7 +899,7 @@ class Night2SceneClass {
                     }
     
     
-                    //DebugManager.draw();
+                    
     
                 }
             });
@@ -958,8 +957,8 @@ class Night2SceneClass {
         
                 const handunit02b = new StreamManager("PS2DATA/DATA/ASSETS/SOUND/Stream/angsty02.wav");
         
-                Screen.display(() => {
-                    //DebugManager.update();
+                renderScreen(() => {
+                    ;
                     const currentTime = Date.now();
                     const deltaTime = (currentTime - lastTime) / 1000;
                     lastTime = currentTime;
@@ -1053,7 +1052,7 @@ class Night2SceneClass {
                         Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
                     }
         
-                    //DebugManager.draw();
+                    
                 });
         }
 
@@ -1657,8 +1656,8 @@ class Night2SceneClass {
     const fadeSpeed = 2;
     let fadeCompleted = false;
 
-    Screen.display(() => {
-        //DebugManager.update();
+    renderScreen(() => {
+        ;
         const currentTime = Date.now();
         const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
@@ -1896,7 +1895,7 @@ class Night2SceneClass {
         overlay.height = 448;
         overlay.color = Color.new(255, 255, 255, 20);
         overlay.draw(0, 0);
-        //DebugManager.draw();
+        
         
         if (isOverMiddleVent) {
             cursor2Image.draw(rectX - cameraX, rectY - cameraY);
@@ -2070,8 +2069,8 @@ class Night2SceneClass {
             }
         }
 
-        Screen.display(() => {
-            //DebugManager.update()
+        renderScreen(() => {
+            
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
@@ -2189,7 +2188,7 @@ class Night2SceneClass {
                 Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
             }
 
-            //DebugManager.draw();
+            
 
         });
         }
@@ -2562,7 +2561,7 @@ class Night2SceneClass {
         shockState = 'off';
         updateButtonStates();
 
-        Screen.display(() => {
+        renderScreen(() => {
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
@@ -2842,7 +2841,7 @@ class Night2SceneClass {
             }
         }
 
-        Screen.display(() => {
+        renderScreen(() => {
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;

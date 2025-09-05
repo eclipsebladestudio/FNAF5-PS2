@@ -350,8 +350,8 @@ class Night1SceneClass {
             }
         }
 
-        Screen.display(() => {
-            //DebugManager.update()
+        renderScreen(() => {
+     
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
@@ -902,7 +902,7 @@ class Night1SceneClass {
                 }
 
 
-                //DebugManager.draw();
+                
 
             }
         });
@@ -960,8 +960,7 @@ class Night1SceneClass {
 
         const handunit02b = new StreamManager("PS2DATA/DATA/ASSETS/SOUND/Stream/handunit02b.wav");
 
-        Screen.display(() => {
-            //;
+        renderScreen(() => {
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
@@ -1053,7 +1052,7 @@ class Night1SceneClass {
                 Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
             }
 
-            //DebugManager.draw();
+            
         });
     }
 
@@ -1698,7 +1697,7 @@ class Night1SceneClass {
         const fadeSpeed = 2;
         let fadeCompleted = false;
 
-        Screen.display(() => {
+        renderScreen(() => {
             //;
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
@@ -2013,7 +2012,7 @@ class Night1SceneClass {
             overlay.height = 448;
             overlay.color = Color.new(255, 255, 255, 20);
             overlay.draw(0, 0);
-            //DebugManager.draw();
+            
             if (isOverMiddleVent) {
                 cursor2Image.draw(rectX - cameraX, rectY - cameraY);
             } else {
@@ -2196,7 +2195,7 @@ class Night1SceneClass {
             }
         }
 
-        Screen.display(() => {
+        renderScreen(() => {
             //
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
@@ -2313,7 +2312,7 @@ class Night1SceneClass {
                 Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
             }
 
-            //DebugManager.draw();
+            
 
         });
     }
@@ -2684,7 +2683,7 @@ class Night1SceneClass {
         shockState = 'off';
         updateButtonStates();
 
-        Screen.display(() => {
+        renderScreen(() => {
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
@@ -2943,7 +2942,7 @@ class Night1SceneClass {
             }
         }
 
-        Screen.display(() => {
+        renderScreen(() => {
             //
             const currentTime = Date.now();
             const deltaTime = (currentTime - lastTime) / 1000;
@@ -3060,7 +3059,7 @@ class Night1SceneClass {
                 Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, fadeAlpha));
             }
 
-            //DebugManager.draw();
+            
 
         });
 
@@ -3221,7 +3220,7 @@ class Night1SceneClass {
             }
         }
 
-        Screen.display(() => {
+        renderScreen(() => {
             gameTimer += 40;
 
             if (!audioPlayed) {
@@ -3344,7 +3343,7 @@ class Night1SceneClass {
     let pipocas = [], baldeX = 200, baldeY = 300;
     let episode1 = new StreamManager("PS2DATA/DATA/ASSETS/SOUND/STREAM/episode1.wav");
 
-    Screen.display(() => {
+    renderScreen(() => {
         const currentTime = Date.now();
         const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
@@ -3461,7 +3460,7 @@ class Night1SceneClass {
             const a = Math.min(255, (fadeOutTimer / fadeOutDuration) * 255);
             Draw.rect(0, 0, 640, 448, Color.new(0, 0, 0, a));
             if (fadeOutTimer >= fadeOutDuration) {
-                SceneManager.load(globalThis.Night2Scene.elevatorScene);
+                SceneManager.load(Night2Scene.elevatorScene);
                 showFadeOut = false;
             }
         }
