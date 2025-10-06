@@ -1,0 +1,47 @@
+{
+    "languages": [
+        {
+            "id": "pt_br",
+            "name": "Português (PT BR)",
+            "flagPath": "flags/br.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/portuguese.cfg",
+            "hasDub": true
+        },
+        {
+            "id": "en",
+            "name": "English",
+            "flagPath": "flags/us.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/english.cfg",
+            "hasDub": true
+        },
+        {
+            "id": "fr",
+            "name": "Français",
+            "flagPath": "flags/fr.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/french.cfg",
+            "hasDub": false
+        },
+        {
+            "id": "de",
+            "name": "Deutsch",
+            "flagPath": "flags/de.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/german.cfg",
+            "hasDub": false
+        },
+        {
+            "id": "es",
+            "name": "Español",
+            "flagPath": "flags/es.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/spanish.cfg",
+            "hasDub": false
+        },
+        {
+            "id": "it",
+            "name": "Italiano",
+            "flagPath": "flags/it.png",
+            "translationFile": "PS2DATA/DATA/LANGUAGES/italian.cfg",
+            "hasDub": false
+        }
+    ],
+    "defaultLanguage": "en"
+}

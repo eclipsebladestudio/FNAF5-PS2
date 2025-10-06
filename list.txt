@@ -1,7 +1,58 @@
-Sister Location ---
+FNAF 5 PS2
 
-Night 1
+To-do list maybe
 
-Elevator Completed
-Ventcrawl1 Completed
-Mainhub = Add a fade in
+------------ Configs ------------
+
+Debug System✅
+SceneManager System✅
+ImageManager System✅
+AudioManager System✅
+languageManager System✅
+SubtitleManager System
+SaveSystem
+PauseSystem
+LoadingScreen System
+Archivements System
+
+----------- Scenes ---------------
+
+Eclipse Logo✅
+Language Select✅
+Warning✅
+Introduction✅
+Title Screen✅
+Extras
+
+-------- Another Scenes --------------
+
+Death
+
+-------Night 1-------
+
+Elevator✅
+Vent Crawl1✅
+Mainhub✅
+Vent Crawl2✅
+Baby✅
+Vent Crawl3✅
+
+Shift Complete✅
+TV Show Episode 1✅
+
+
+
+-------Night 2-------
+
+
+-------Night 3-------
+
+
+-------Night 4-------
+
+
+-------Night 5-------
+
+
+
+remember, you have to replace all texture(texts) for real texts

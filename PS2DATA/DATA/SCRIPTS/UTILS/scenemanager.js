@@ -1,5 +1,5 @@
 export class SfxManager {
-    constructor(path) {
+    constructor(path, loop = false) {
         this.path = path;
         this.sfx = null;
         this.channel = null;
@@ -8,6 +8,8 @@ export class SfxManager {
         this.volume = 100;
         this.pan = 0;
         this.pitch = 0;
+        this.loop = loop;
+        this.intervalId = null;
 
         SceneManager.trackSound(this);
         this.load();
@@ -35,17 +37,34 @@ export class SfxManager {
 
             if (channel !== null) {
                 this.channel = this.sfx.play(channel);
-                console.log(`Playing SFX on channel: ${channel}`);
             } else {
                 const availableChannel = Sound.findChannel();
                 this.channel = this.sfx.play(availableChannel);
-                console.log(`Playing SFX on available channel: ${availableChannel}`);
+            }
+
+            if (this.loop && this.intervalId === null) {
+                this.startLoopCheck();
             }
 
             return this.channel;
         } catch (error) {
             console.log(`Failed to play SFX: ${this.path}`);
             return null;
+        }
+    }
+
+    startLoopCheck() {
+        this.intervalId = os.setInterval(() => {
+            if (!this.isPlaying() && this.loop) {
+                this.play(this.channel);
+            }
+        }, 100);
+    }
+
+    stop() {
+        if (this.intervalId !== null) {
+            os.clearInterval(this.intervalId);
+            this.intervalId = null;
         }
     }
 
@@ -56,6 +75,15 @@ export class SfxManager {
             return this.sfx.playing(this.channel);
         } catch {
             return false;
+        }
+    }
+
+    setLoop(loop) {
+        this.loop = loop;
+        if (!loop) {
+            this.stop();
+        } else if (this.channel !== null && this.intervalId === null) {
+            this.startLoopCheck();
         }
     }
 
@@ -77,6 +105,8 @@ export class SfxManager {
     free() {
         if (this.freed) return;
         this.freed = true;
+
+        this.stop();
 
         try {
             if (this.sfx) {
@@ -189,6 +219,19 @@ export class StreamManager {
   getLength() {
     return this.stream ? this.stream.length : 0;
   }
+
+  setVolume(vol) {
+  if (this.stream) {
+    if (vol < 0) vol = 0;
+    if (vol > 100) vol = 100;
+    this.stream.volume = vol;
+  }
+}
+
+getVolume() {
+  return this.stream ? this.stream.volume : 100;
+}
+
 
   free() {
     if (this.freed) return;
@@ -382,4 +425,3 @@ export const SceneManager = {
         };
     }
 };
-

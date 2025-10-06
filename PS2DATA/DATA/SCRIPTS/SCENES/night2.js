@@ -1,4 +1,3 @@
-import {ImageManager,SceneManager, StreamManager, SfxManager} from "../UTILS/scenemanager.js";
 
 class Night2SceneClass {
     constructor() {}
@@ -2495,7 +2494,7 @@ class Night2SceneClass {
                 fadeAlpha = Math.floor((fadeTimer / FADE_DURATION) * 255);
 
                 if (fadeTimer >= FADE_DURATION) {
-                    //
+             
                     SceneManager.clear();
                     SceneManager.load(Night2Scene.ventcrawl3);
                 }

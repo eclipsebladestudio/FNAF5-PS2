@@ -1,15 +1,26 @@
-let debugMemoryEnabled = true;
-let font = new Font("default"); 
+let debugMemoryEnabled = false;
+
 
 function DebugMemory() {
     const ramStats = System.getMemoryStats();
-    const ramUsedMB = (ramStats.used / 1048576).toFixed(2);
-    const ramFreeMB = (32 - ramUsedMB).toFixed(2);
+    
+    const totalRAM = 32 * 1048576;
+    
+    const availableRAM = totalRAM - ramStats.core;
 
+    const userUsedRAM = ramStats.used - ramStats.core;
+    
+    const userFreeRAM = availableRAM - userUsedRAM;
+    
+    const availableMB = (availableRAM / 1048576).toFixed(2);
+    const userUsedMB = (userUsedRAM / 1048576).toFixed(2);
+    const userFreeMB = (userFreeRAM / 1048576).toFixed(2);
+    const coreMB = (ramStats.core / 1048576).toFixed(2);
+    
     const debugText = [
-        `Using RAM: ${ramUsedMB}MB / 32MB`,
-        `Free RAM: ${ramFreeMB}MB / 32MB`,
-        `Used RAM: ${ramStats.used} B`
+        `Used: ${userUsedMB}MB / ${availableMB}MB`,
+        `Free: ${userFreeMB}MB`,
+        `Core (Engine): ${coreMB}MB`
     ];
 
     return debugText;
@@ -23,8 +34,8 @@ export function renderScreen(callback) {
             const debugOutput = DebugMemory();
             let y = 20;
             for (const line of debugOutput) {
-                font.print(20, y, line); 
-                y += 20; 
+                font.print(20, y, line);
+                y += 20;
             }
         }
     });
